@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f5d8a">
+<title>Quiz Hub</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f6f5f1;--side:#fbfaf7;--ink:#1f2328;--mute:#6b6f76;--line:#e3e0d8;--acc:#2f5d8a;--accbg:#e7eef6;--ok:#2e7d4f;--warn:#b26a00;--bad:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+.app{display:flex;height:100vh;height:100dvh}
+aside{width:300px;min-width:240px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.brand{padding:16px 16px 10px;font-weight:600;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+.brand small{font-weight:400;color:var(--mute);font-size:12px}
+.search{margin:0 12px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;background:#fff}
+nav{flex:1;overflow:auto;padding:4px 8px 16px}
+.topic>button,.group>button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;border-radius:6px}
+.topic>button{padding:9px 8px 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.group>button{padding:6px 8px;font-size:14px;font-weight:500}
+.group>button:hover,.item:hover{background:#efede6}
+.car{display:inline-block;width:10px;transition:transform .15s;font-size:10px}
+.closed>button .car{transform:rotate(-90deg)}
+.closed>.kids{display:none}
+.group .kids{margin-left:14px;border-left:1px solid var(--line);padding-left:4px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;font-size:14px;color:inherit;text-decoration:none;cursor:pointer}
+.item.on{background:var(--accbg);color:var(--acc);font-weight:500}
+.item .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{flex:none;font-size:11.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.pill.full{color:var(--ok)}
+.rev{flex:none;font-size:11.5px;color:var(--warn);margin-left:6px;font-variant-numeric:tabular-nums}
+.revbtn{margin:0 12px 8px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;background:#fff;color:var(--ink);text-align:left;cursor:pointer}
+.revbtn.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:500}
+.new{flex:none;font-size:10px;font-weight:600;color:#fff;background:var(--warn);border-radius:4px;padding:1px 5px;margin-left:4px}
+.foot{border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));font-size:12px;color:var(--mute);line-height:1.5;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.foot button{font:inherit;font-size:12px;color:var(--acc);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mute);margin-right:6px;vertical-align:1px}
+.dot.ok{background:var(--ok)}.dot.busy{background:var(--acc)}.dot.err{background:var(--bad)}.dot.off{background:var(--warn)}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;gap:10px;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--side);font-size:14px;min-height:42px}
+.bar .t{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar button{font:inherit;font-size:13px;color:var(--acc);background:none;border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer}
+#menu{display:none}
+#banner{display:none;padding:8px 14px;background:#fff4dc;border-bottom:1px solid #f0dca8;font-size:13.5px}
+#banner button{font:inherit;font-size:13px;margin-left:8px;color:var(--acc);background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 9px;cursor:pointer}
+iframe{flex:1;border:0;width:100%;background:#fff}
+.empty{margin:auto;max-width:520px;padding:24px;color:var(--mute);line-height:1.6;font-size:15px}
+.empty code{background:#ecebe5;padding:1px 5px;border-radius:4px;color:var(--ink);word-break:break-all}
+/* setup + settings */
+.ov{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;overflow:auto}
+.ov.show{display:block}
+.card{max-width:480px;margin:8vh auto;padding:26px 24px;background:#fff;border:1px solid var(--line);border-radius:14px;line-height:1.55}
+.card h2{margin:0 0 6px;font-size:21px}
+.card p{margin:8px 0;font-size:14.5px}
+.card .m{color:var(--mute);font-size:13.5px}
+.card ol{padding-left:20px;font-size:14px;margin:8px 0}
+.card input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;font-family:ui-monospace,monospace;margin:10px 0 4px}
+.card .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.card button{font:inherit;font-size:14px;padding:9px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer}
+.card button.sec{background:#fff;color:var(--acc);border-color:var(--line)}
+.card button.dan{background:#fff;color:var(--bad);border-color:#efc9c6}
+.card button:disabled{opacity:.6;cursor:default}
+.card .err{color:var(--bad);font-size:13.5px;min-height:1.4em}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13.5px;margin:12px 0}
+.card dt{color:var(--mute)}.card dd{margin:0;word-break:break-all}
+.card a{color:var(--acc)}
+@media (max-width:760px){
+  aside{position:fixed;inset:0 auto 0 0;z-index:5;transform:translateX(-100%);transition:transform .2s;width:85vw;padding-top:env(safe-area-inset-top)}
+  .app.open aside{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.25)}
+  #menu{display:inline-block}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside>
+    <div class="brand">Quiz Hub <small id="count"></small></div>
+    <input class="search" id="search" placeholder="Filter quizzes" autocomplete="off">
+    <button class="revbtn" id="revonly" type="button" aria-pressed="false">★ Marked for revision <span id="revn"></span></button>
+    <nav id="nav"></nav>
+    <div class="foot"><span id="status"><span class="dot"></span>Not connected</span><button id="settingsBtn" type="button">Settings</button></div>
+  </aside>
+  <main>
+    <div class="bar"><button id="menu" type="button" aria-label="Quizzes">&#9776;</button><span class="t" id="title">Pick a quiz</span><button id="syncBtn" type="button" title="Sync now">⟳ Sync</button></div>
+    <div id="banner">This quiz was updated on your other device.<button id="reloadQuiz" type="button">Load latest</button></div>
+    <div id="view" class="empty"><p>Pick a quiz from the menu.</p></div>
+  </main>
+</div>
+
+<div class="ov" id="setup"><div class="card">
+  <h2>Connect to GitHub</h2>
+  <p>Quiz Hub keeps your quizzes and progress in two <b>secret gists</b> on your GitHub account, so all your devices stay in sync. Paste a token that can access gists.</p>
+  <ol class="m">
+    <li>Open <a href="https://github.com/settings/tokens/new?scopes=gist&description=Quiz%20Hub" target="_blank" rel="noopener">github.com/settings/tokens/new</a> (classic token).</li>
+    <li>Tick only <b>gist</b>, choose an expiry, press <b>Generate token</b>.</li>
+    <li>Paste it below. Use the same token on every device.</li>
+  </ol>
+  <input id="tok" type="password" placeholder="ghp_…" autocomplete="off" spellcheck="false">
+  <div class="err" id="setupErr"></div>
+  <div class="row"><button id="connect" type="button">Verify and connect</button></div>
+  <p class="m">The token stays on this device, in this app's storage. It is sent only to api.github.com<span id="localNote"></span>.</p>
+</div></div>
+
+<div class="ov" id="settings"><div class="card">
+  <h2>Settings</h2>
+  <dl id="info"></dl>
+  <div class="err" id="setErr"></div>
+  <div class="row">
+    <button id="syncNow2" type="button">Sync now</button>
+    <button class="sec" id="redownload" type="button">Re-download quizzes</button>
+    <button class="sec" id="closeSettings" type="button">Close</button>
+  </div>
+  <div class="row"><button class="dan" id="signout" type="button">Forget token on this device</button></div>
+  <p class="m">Forgetting the token does not delete anything on GitHub. Your progress stays in the gist.</p>
+</div></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const API="https://api.github.com", SYNC_FILE="quizhub-sync.json", LIB_FILE="quizhub-library.json", QCACHE="qh-quizzes";
+const LOCAL=["localhost","127.0.0.1"].includes(location.hostname);
+const LS={get(k,d){try{const v=localStorage.getItem("qh:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem("qh:"+k,JSON.stringify(v))}catch(e){}},del(k){localStorage.removeItem("qh:"+k)}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let cfg=LS.get("cfg",null);                       // {token, login, sync, library}
+let S=LS.get("state",{progress:{},revision:{}});  // local copy of quizhub-sync.json
+let remote=LS.get("remote",null);                 // last version seen on GitHub
+let lib=LS.get("lib",{topics:[]});                // quizhub-library.json
+let libHave=LS.get("libHave",{});                 // gist file -> hash cached on this device
+let etags=LS.get("etags",{});
+let revOnly=LS.get("revOnly",false)===true, closed=new Set(LS.get("closed",[])), seen=LS.get("seen",null);
+let cur=decodeURIComponent((location.hash.match(/q=(.*)/)||[])[1]||""), frame=null, curKey=null;
+let status={s:"",msg:""}, lastSync=LS.get("lastSync",0), serverInfo=null;
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+// ------------------------------------------------------------------ GitHub
+async function gh(path,opt={},token=cfg&&cfg.token){
+  const headers={Authorization:"Bearer "+token,Accept:"application/vnd.github+json",...(opt.headers||{})};
+  if(opt.body) headers["Content-Type"]="application/json";
+  return fetch(API+path,{...opt,headers,cache:"no-store"});
+}
+async function fileText(f){ return f.truncated||f.content==null ? (await fetch(f.raw_url,{cache:"no-store"})).text() : f.content; }
+function ghError(r,what){
+  if(r.status===401) return new Error("GitHub rejected the token (expired or revoked). Open Settings and connect again.");
+  if(r.status===403||r.status===404) return new Error(what+": token has no gist access (HTTP "+r.status+").");
+  return new Error(what+": HTTP "+r.status);
+}
+
+async function connect(token){
+  const u=await gh("/user",{},token);
+  if(u.status===401) throw new Error("GitHub says this token is not valid. Check you copied all of it.");
+  if(!u.ok) throw new Error("Could not reach GitHub (HTTP "+u.status+").");
+  const scopes=u.headers.get("x-oauth-scopes");
+  if(scopes!==null&&!scopes.split(/\s*,\s*/).includes("gist")) throw new Error("This token works but is missing the gist scope. Create one with “gist” ticked.");
+  const login=(await u.json()).login;
+  let sync=null, library=null;
+  for(let p=1;p<=30&&!(sync&&library);p++){
+    const r=await gh("/gists?per_page=100&page="+p,{},token); if(!r.ok) throw ghError(r,"Listing gists");
+    const list=await r.json();
+    for(const g of list){ if(!sync&&g.files[SYNC_FILE]) sync=g.id; if(!library&&g.files[LIB_FILE]) library=g.id; }
+    if(list.length<100) break;
+  }
+  async function make(desc,file,content){
+    const r=await gh("/gists",{method:"POST",body:JSON.stringify({public:false,description:desc,files:{[file]:{content:JSON.stringify(content)}}})},token);
+    if(!r.ok) throw ghError(r,"Creating the gist"); return (await r.json()).id;
+  }
+  if(!sync) sync=await make("Quiz Hub sync: progress and revision marks",SYNC_FILE,{v:1,progress:{},revision:{}});
+  if(!library) library=await make("Quiz Hub library: quiz files",LIB_FILE,{v:1,topics:[]});
+  return {token,login,sync,library};
+}
+
+// ------------------------------------------------------------------ progress sync (quizhub-sync.json)
+function newer(a,b){ return a&&(!b||a.t>b.t); }
+function mergeRemote(rem){              // pull side: take remote entries that are newer than ours
+  const changed=new Set();
+  for(const kind of ["progress","revision"]) for(const [k,r] of Object.entries(rem[kind]||{}))
+    if(newer(r,S[kind][k])){ S[kind][k]=r; changed.add(k); }
+  return changed;
+}
+function aheadOf(rem){
+  for(const kind of ["progress","revision"]) for(const [k,l] of Object.entries(S[kind]))
+    if(newer(l,(rem[kind]||{})[k])) return true;
+  return false;
+}
+let syncing=null, again=false, pushTimer=null;
+function schedulePush(){ clearTimeout(pushTimer); pushTimer=setTimeout(sync,1500); }
+function sync(){ if(syncing){ again=true; return syncing; } syncing=doSync().finally(()=>{ syncing=null; if(again){ again=false; sync(); } }); return syncing; }
+async function doSync(){
+  if(!cfg) return;
+  if(!navigator.onLine){ setStatus("off","Offline · changes saved here"); return; }
+  setStatus("busy","Syncing…");
+  try{
+    const r=await gh("/gists/"+cfg.sync,{headers:etags.sync&&remote?{"If-None-Match":etags.sync}:{}});
+    if(r.status===200){
+      const g=await r.json(), f=g.files[SYNC_FILE];
+      remote=f?JSON.parse(await fileText(f)):{v:1,progress:{},revision:{}};
+      remote.progress=remote.progress||{}; remote.revision=remote.revision||{};
+      etags.sync=r.headers.get("ETag"); LS.set("etags",etags); LS.set("remote",remote);
+      const changed=mergeRemote(remote); persist();
+      if(changed.size){ render(); if(curKey&&changed.has(curKey)) $("banner").style.display="block"; }
+    } else if(r.status!==304) throw ghError(r,"Reading progress");
+    if(aheadOf(remote)){
+      const body={v:1,updated:new Date().toISOString(),progress:S.progress,revision:S.revision};
+      const p=await gh("/gists/"+cfg.sync,{method:"PATCH",body:JSON.stringify({files:{[SYNC_FILE]:{content:JSON.stringify(body)}}})});
+      if(!p.ok) throw ghError(p,"Saving progress");
+      remote=JSON.parse(JSON.stringify(body)); LS.set("remote",remote); delete etags.sync; LS.set("etags",etags);
+    }
+    lastSync=Date.now(); LS.set("lastSync",lastSync); setStatus("ok","Synced");
+  }catch(e){ setStatus(navigator.onLine?"err":"off", navigator.onLine?e.message:"Offline · changes saved here"); }
+}
+function persist(){ LS.set("state",S); }
+
+// ------------------------------------------------------------------ library (quiz files)
+let libBusy=null;
+function pullLib(force){ return libBusy||(libBusy=doPullLib(force).finally(()=>libBusy=null)); }
+async function doPullLib(force){
+  if(!cfg||!navigator.onLine) return;
+  const r=await gh("/gists/"+cfg.library,{headers:etags.lib&&!force?{"If-None-Match":etags.lib}:{}});
+  if(r.status===304) return;
+  if(!r.ok){ setStatus("err",ghError(r,"Reading quizzes").message); return; }
+  const g=await r.json(), mf=g.files[LIB_FILE];
+  const man=mf?JSON.parse(await fileText(mf)):{topics:[]};
+  const cache=await caches.open(QCACHE), want={};
+  for(const q of quizzesOf(man)){
+    want[q.file]=q.hash;
+    if(!force&&libHave[q.file]===q.hash) continue;
+    const f=g.files[q.file]; if(!f) continue;
+    await cache.put(qurl(q.file),new Response(await fileText(f),{headers:{"Content-Type":"text/html; charset=utf-8"}}));
+    libHave[q.file]=q.hash;
+  }
+  for(const file of Object.keys(libHave)) if(!(file in want)){ await cache.delete(qurl(file)); delete libHave[file]; }
+  lib=man; LS.set("lib",lib); LS.set("libHave",libHave);
+  etags.lib=r.headers.get("ETag"); LS.set("etags",etags);
+  if(seen===null){ seen=allItems().map(i=>i.path); LS.set("seen",seen); }
+  render(); if(cur&&!frame) open(cur);
+}
+const qurl=file=>new URL("__quiz/"+encodeURIComponent(file),location.href).href;
+function quizzesOf(m){ const a=[]; for(const t of m.topics||[]) for(const e of t.entries) (e.group?e.items:[e.quiz]).forEach(i=>a.push(i)); return a; }
+const allItems=()=>quizzesOf(lib);
+
+// ------------------------------------------------------------------ sidebar
+function counts(key){
+  const p=S.progress[key]; if(!p) return null;
+  try{ const st=JSON.parse(p.v).state; if(!Array.isArray(st)||!st.length) return null;
+       return [st.filter(s=>s.checked).length,st.filter(s=>s.correct).length,st.length]; }catch(e){ return null; }
+}
+const revCount=key=>((S.revision[key]||{}).m||[]).length;
+function pill(p){ if(!p) return ""; const [att,ok,n]=p; return `<span class="pill${att===n?" full":""}">${att}/${n}${att?` · ${ok}✓`:""}</span>`; }
+function item(i){
+  const isNew=seen&&!seen.includes(i.path), rv=revCount(i.key);
+  return `<a class="item${i.path===cur?" on":""}" data-path="${esc(i.path)}" title="${esc(i.title)}"><span class="lbl">${esc(i.label)}</span><span>${pill(counts(i.key))}${rv>0?`<span class="rev" title="${rv} marked for revision">★${rv}</span>`:""}${isNew?'<span class="new">NEW</span>':""}</span></a>`;
+}
+function render(){
+  const f=$("search").value.trim().toLowerCase(); let h="";
+  const show=i=>!revOnly||revCount(i.key)>0;
+  for(const t of lib.topics||[]){
+    let inner="";
+    for(const e of t.entries){
+      if(e.group){
+        const its=e.items.filter(i=>show(i)&&(!f||(e.group+" "+i.title).toLowerCase().includes(f))); if(!its.length) continue;
+        const id="g:"+t.topic+"/"+e.group, c=closed.has(id)&&!f&&!revOnly&&!its.some(i=>i.path===cur);
+        inner+=`<div class="group${c?" closed":""}" data-id="${esc(id)}"><button type="button"><span class="car">▾</span>${esc(e.group)}</button><div class="kids">${its.map(item).join("")}</div></div>`;
+      } else if(show(e.quiz)&&(!f||e.quiz.title.toLowerCase().includes(f))) inner+=item(e.quiz);
+    }
+    if(!inner) continue;
+    const id="t:"+t.topic, c=closed.has(id)&&!f&&!revOnly;
+    h+=`<div class="topic${c?" closed":""}" data-id="${esc(id)}"><button type="button"><span class="car">▾</span>${esc(t.topic)}</button><div class="kids">${inner}</div></div>`;
+  }
+  const total=allItems().length;
+  const sc=$("nav").scrollTop;
+  $("nav").innerHTML=h||`<p class="pill" style="padding:8px">${!total?(cfg?"No quizzes in the library yet. They are uploaded from your laptop's ~/Quizzes folder by the Quiz Hub service.":""):revOnly&&!f?"Nothing is marked for revision yet.":"No quizzes match."}</p>`;
+  $("nav").scrollTop=sc;
+  $("revn").textContent="("+allItems().reduce((a,i)=>a+revCount(i.key),0)+")";
+  $("revonly").classList.toggle("on",revOnly); $("revonly").setAttribute("aria-pressed",revOnly?"true":"false");
+  $("count").textContent=total?total+" quizzes":"";
+}
+function setStatus(s,msg){
+  status={s,msg};
+  const when=s==="ok"&&lastSync?" "+new Date(lastSync).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"";
+  $("status").innerHTML=`<span class="dot ${s}"></span>${esc(msg+when)}`; $("status").title=msg;
+}
+
+// ------------------------------------------------------------------ quiz view
+const HEAD_JS=`<script>(function(){var KEY=__KEY__,ls=localStorage,set=Storage.prototype.setItem,rem=Storage.prototype.removeItem;
+function send(v){try{parent.postMessage({quizHub:'saved',key:KEY,v:v},'*')}catch(e){}}
+Storage.prototype.setItem=function(k,v){set.call(this,k,v);if(this===ls&&k===KEY)send(String(v))};
+Storage.prototype.removeItem=function(k){rem.call(this,k);if(this===ls&&k===KEY)send('{}')};})();<\/script>`;
+const REV_JS=`<style>#qh-bar{justify-content:flex-start}#qh-bar button.qh-on{background:var(--accent-soft,#e3ecf7)}
+.qh-badge{color:var(--accent,#2d5b8c);font-weight:600;margin-left:10px;white-space:nowrap}</style>
+<script>(function(){
+  var KEY=__KEY__, START=__START__, N, marks, filter=false;
+  try{ if(typeof Q==='undefined'||typeof state==='undefined'||typeof cur==='undefined'||typeof render!=='function'||typeof updateButtons!=='function') return; N=Q.length; }catch(e){ return; }
+  var card=document.getElementById('card'), prev=document.getElementById('prev'), next=document.getElementById('next'), pos=document.getElementById('pos');
+  if(!card||!prev||!next||!pos) return;
+  function valid(i){ return Number.isInteger(i)&&i>=0&&i<N; }
+  function sorted(){ return Array.from(marks).sort(function(a,b){ return a-b; }); }
+  marks=new Set(__MARKS__.filter(valid));
+  var bar=document.createElement('div'); bar.className='controls'; bar.id='qh-bar';
+  var grp=document.createElement('div'); grp.className='grp';
+  var mark=document.createElement('button'); mark.type='button';
+  var filt=document.createElement('button'); filt.type='button';
+  grp.appendChild(mark); grp.appendChild(filt); bar.appendChild(grp); card.insertAdjacentElement('afterend',bar);
+  function decorate(){
+    var n=marks.size, on=cur<N&&marks.has(cur);
+    mark.disabled=cur>=N; mark.textContent=on?'\\u2605 Marked for revision':'\\u2606 Mark for revision';
+    mark.classList.toggle('qh-on',on); mark.setAttribute('aria-pressed',on?'true':'false');
+    filt.textContent=filter?'Show all questions':'Show revision only ('+n+')';
+    filt.disabled=!filter&&n===0; filt.classList.toggle('qh-on',filter);
+    var head=card.querySelector('.qhead span');
+    if(head&&cur<N){ var b=head.querySelector('.qh-badge');
+      if(on&&!b){ b=document.createElement('span'); b.className='qh-badge'; b.textContent='\\u2605 revision'; head.appendChild(b); }
+      else if(!on&&b) b.remove(); }
+    if(filter){ var list=sorted(), k=list.indexOf(cur);
+      pos.textContent='Revision '+(k>=0?k+1:'\\u2013')+' / '+n;
+      prev.disabled=!list.some(function(i){ return i<cur; }); next.disabled=!list.some(function(i){ return i>cur; }); next.textContent='Next'; }
+  }
+  var origUpdate=updateButtons;
+  window.updateButtons=function(){ origUpdate.apply(this,arguments); try{ decorate(); }catch(e){} };
+  function go(i){ cur=i; render(); window.scrollTo({top:0}); }
+  var origPrev=prev.onclick, origNext=next.onclick;
+  next.onclick=function(e){ if(!filter) return origNext&&origNext.call(this,e); var l=sorted().filter(function(i){ return i>cur; }); if(l.length) go(l[0]); };
+  prev.onclick=function(e){ if(!filter) return origPrev&&origPrev.call(this,e); var l=sorted().filter(function(i){ return i<cur; }); if(l.length) go(l[l.length-1]); };
+  function setFilter(v){ v=!!v&&marks.size>0; if(v===filter){ updateButtons(); return; } filter=v;
+    if(filter&&!(cur<N&&marks.has(cur))){ var l=sorted(), after=l.filter(function(i){ return i>=cur; }); go(after.length?after[0]:l[0]); } else updateButtons(); }
+  filt.onclick=function(){ setFilter(!filter); };
+  mark.onclick=function(){ if(cur>=N) return; if(marks.has(cur)) marks.delete(cur); else marks.add(cur);
+    if(!marks.size) filter=false; updateButtons();
+    try{ parent.postMessage({quizHub:'rev',key:KEY,m:sorted()},'*'); }catch(e){} };
+  window.addEventListener('message',function(ev){ var m=ev.data; if(ev.source!==parent||!m||m.quizHub!=='filter') return; setFilter(m.on); });
+  if(START) setFilter(true); else updateButtons();
+})();<\/script>`;
+
+function prepStorage(key){
+  // Put the synced progress where the quiz reads it. If GitHub has nothing yet, adopt what this browser already had.
+  const p=S.progress[key];
+  try{
+    if(p){ if(p.v==="{}") localStorage.removeItem(key); else localStorage.setItem(key,p.v); }
+    else { const v=localStorage.getItem(key); if(v&&/"state"\s*:\s*\[/.test(v)){ S.progress[key]={v,t:Date.now()}; persist(); schedulePush(); } }
+  }catch(e){}
+}
+async function open(path){
+  const it=allItems().find(i=>i.path===path);
+  if(!it){ cur=""; frame=null; curKey=null; $("title").textContent="Pick a quiz"; showText(allItems().length?"Pick a quiz from the menu.":""); render(); return; }
+  cur=path; curKey=it.key; history.replaceState(null,"","#q="+encodeURIComponent(path));
+  if(seen&&!seen.includes(path)){ seen.push(path); LS.set("seen",seen); }
+  $("title").textContent=it.title; $("app").classList.remove("open"); $("banner").style.display="none"; render();
+  if(cfg&&navigator.onLine){ showText("Loading…"); await Promise.race([sync(),new Promise(r=>setTimeout(r,3000))]); if(cur!==path) return; }
+  let hit=await (await caches.open(QCACHE)).match(qurl(it.file));
+  if(!hit&&navigator.onLine){ showText("Downloading quiz…"); await pullLib(true); hit=await (await caches.open(QCACHE)).match(qurl(it.file)); }
+  if(cur!==path) return;
+  if(!hit){ showText("This quiz is not on this device yet. Connect to the internet once to download it."); return; }
+  let html=await hit.text();
+  const J=x=>JSON.stringify(x).replace(/<\//g,"<\\/");
+  const head=HEAD_JS.replace("__KEY__",J(it.key));
+  const rev=REV_JS.replace("__KEY__",J(it.key)).replace("__START__",revOnly&&revCount(it.key)>0?"true":"false").replace("__MARKS__",J((S.revision[it.key]||{}).m||[]));
+  const i=html.search(/<head[^>]*>/i);
+  html=i>=0?html.replace(/<head[^>]*>/i,m=>m+head):head+html;
+  const j=html.toLowerCase().lastIndexOf("</body>");
+  html=j>=0?html.slice(0,j)+rev+html.slice(j):html+rev;
+  prepStorage(it.key);
+  const f=document.createElement("iframe"); f.id="view"; f.title=it.title; f.srcdoc=html;
+  $("view").replaceWith(f); frame=f;
+}
+function showText(t){ frame=null; const d=document.createElement("div"); d.id="view"; d.className="empty"; d.innerHTML="<p>"+esc(t)+"</p>"; $("view").replaceWith(d); }
+
+window.addEventListener("message",ev=>{
+  const m=ev.data; if(!m||!frame||ev.source!==frame.contentWindow||m.key!==curKey) return;
+  if(m.quizHub==="saved"&&typeof m.v==="string"){ if(S.progress[m.key]&&S.progress[m.key].v===m.v) return; S.progress[m.key]={v:m.v,t:Date.now()}; }
+  else if(m.quizHub==="rev"&&Array.isArray(m.m)){ S.revision[m.key]={m:m.m.filter(Number.isInteger),t:Date.now()}; }
+  else return;
+  persist(); render(); schedulePush();
+});
+
+// ------------------------------------------------------------------ desktop publisher (only when served by quiz_hub.py on this laptop)
+async function linkServer(force){
+  if(!LOCAL||!cfg) return;
+  try{
+    const s=await (await fetch("api/status",{cache:"no-store"})).json(); serverInfo=s;
+    if(force||!s.linked||s.library!==cfg.library||s.sync!==cfg.sync){
+      const r=await fetch("api/link",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:cfg.token,sync:cfg.sync,library:cfg.library})});
+      serverInfo=await r.json();
+    }
+  }catch(e){ serverInfo=null; }
+}
+
+// ------------------------------------------------------------------ settings + setup UI
+function showSetup(){ $("setup").classList.add("show"); $("localNote").textContent=LOCAL?" and to the Quiz Hub service on this laptop, which uploads your ~/Quizzes folder":""; setTimeout(()=>$("tok").focus(),50); }
+$("connect").onclick=async()=>{
+  const t=$("tok").value.trim(); $("setupErr").textContent="";
+  if(!t){ $("setupErr").textContent="Paste your token first."; return; }
+  $("connect").disabled=true; $("connect").textContent="Checking…";
+  try{
+    cfg=await connect(t); LS.set("cfg",cfg); etags={}; LS.set("etags",etags); remote=null;
+    $("setup").classList.remove("show"); $("tok").value="";
+    await linkServer(true); await sync(); await pullLib();
+    if(LOCAL) setTimeout(()=>pullLib(),8000);          // the laptop's first upload takes a few seconds
+  }catch(e){ $("setupErr").textContent=e.message; }
+  $("connect").disabled=false; $("connect").textContent="Verify and connect";
+};
+$("tok").addEventListener("keydown",e=>{ if(e.key==="Enter") $("connect").click(); });
+async function showSettings(){
+  if(!cfg){ showSetup(); return; }
+  await linkServer(false);
+  const g=id=>`<a href="https://gist.github.com/${esc(cfg.login)}/${esc(id)}" target="_blank" rel="noopener">${esc(id.slice(0,8))}…</a>`;
+  let rows=`<dt>GitHub</dt><dd>${esc(cfg.login)}</dd><dt>Progress gist</dt><dd>${g(cfg.sync)}</dd><dt>Quiz gist</dt><dd>${g(cfg.library)}</dd>
+    <dt>Status</dt><dd>${esc(status.msg)}${lastSync?" (last "+new Date(lastSync).toLocaleString()+")":""}</dd><dt>Quizzes here</dt><dd>${Object.keys(libHave).length} of ${allItems().length} downloaded</dd>`;
+  if(LOCAL) rows+=`<dt>Laptop upload</dt><dd>${serverInfo?(serverInfo.linked?esc(serverInfo.message||"Linked"):"Not linked"):"Quiz Hub service not reachable"}</dd>`;
+  $("info").innerHTML=rows; $("setErr").textContent=""; $("settings").classList.add("show");
+}
+$("settingsBtn").onclick=showSettings;
+$("closeSettings").onclick=()=>$("settings").classList.remove("show");
+$("syncNow2").onclick=async()=>{ await sync(); await pullLib(); showSettings(); };
+$("redownload").onclick=async()=>{ $("redownload").disabled=true; await pullLib(true); $("redownload").disabled=false; showSettings(); };
+$("signout").onclick=()=>{
+  if(!confirm("Forget the GitHub token on this device? Progress already synced stays on GitHub.")) return;
+  LS.del("cfg"); cfg=null; $("settings").classList.remove("show"); setStatus("","Not connected"); showSetup();
+};
+$("syncBtn").onclick=async()=>{ await sync(); await pullLib(); };
+$("reloadQuiz").onclick=()=>{ $("banner").style.display="none"; open(cur); };
+
+$("nav").addEventListener("click",ev=>{
+  const a=ev.target.closest(".item"); if(a){ open(a.dataset.path); return; }
+  const b=ev.target.closest("button"); if(!b) return;
+  const box=b.parentElement, id=box.dataset.id; box.classList.toggle("closed");
+  box.classList.contains("closed")?closed.add(id):closed.delete(id); LS.set("closed",[...closed]);
+});
+$("search").addEventListener("input",render);
+$("revonly").onclick=()=>{ revOnly=!revOnly; LS.set("revOnly",revOnly); render();
+  if(frame&&frame.contentWindow) frame.contentWindow.postMessage({quizHub:"filter",on:revOnly},"*"); };
+$("menu").onclick=()=>$("app").classList.toggle("open");
+
+// keep both devices current: on focus, coming online, and every 20 s while visible
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ sync(); pullLib(); } else if(cfg) sync(); });
+window.addEventListener("online",()=>{ sync(); pullLib(); });
+window.addEventListener("offline",()=>setStatus("off","Offline · changes saved here"));
+let tick=0;
+setInterval(()=>{ if(!cfg||document.visibilityState!=="visible") return; sync(); if(++tick%3===0) pullLib(); },20000);
+
+// ------------------------------------------------------------------ start
+render();
+if(!cfg){ showSetup(); }
+else { setStatus("",lastSync?"Last synced":"Not synced yet"); if(cur) open(cur); else if(!allItems().length) render();
+       linkServer(false); sync(); pullLib(); }
+</script>
+</body>
+</html>
